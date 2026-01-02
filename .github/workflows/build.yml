@@ -1,0 +1,40 @@
+name: Build and Package Docker Images
+
+on:
+  workflow_dispatch:  # 允许手动触发
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Pull and Save Docker Images
+        run: |
+          mkdir -p output
+          while IFS= read -r image; do
+            if [[ -n "$image" && "$image" != "#"* ]]; then
+              echo "Pulling $image..."
+              docker pull "$image"
+            fi
+          done < images.txt
+          docker save $(cat images.txt | grep -v '^#' | xargs) -o output/images.tar
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-images
+          path: output/images.tar
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "output/images.tar"
+          tag: v1.0
+          token: ${{ secrets.GITHUB_TOKEN }}
