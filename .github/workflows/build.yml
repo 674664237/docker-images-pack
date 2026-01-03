@@ -16,8 +16,10 @@ jobs:
           docker pull alpine
           docker save nginx:alpine alpine -o images.tar
 
-      - name: Upload to Release
-        uses: ncipollo/release-action@v1
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          artifacts: "images.tar"
-          tag: v1.0
+          files: images.tar
+          tag_name: v1.0
+          name: v1.0
+          
