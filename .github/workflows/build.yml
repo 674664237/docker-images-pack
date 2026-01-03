@@ -1,25 +1,28 @@
 name: Package Docker Images
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   package:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Pull and Save Images
+      - name: Pull required Docker images
         run: |
           docker pull nginx:alpine
           docker pull alpine
-          docker save nginx:alpine alpine -o images.tar
+          echo "Images pulled successfully."
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+      - name: Save images to tar file
+        run: |
+          docker save nginx:alpine alpine -o images.tar
+          ls -lh images.tar
+
+      - name: Upload as Artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: images.tar
-          tag_name: v1.0
-          name: v1.0
-          
+          name: docker-images
+          path: images.tar
